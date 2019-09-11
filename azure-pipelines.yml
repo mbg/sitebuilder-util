@@ -1,0 +1,81 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  HOME: $(Pipeline.Workspace)
+  CACHE_PACK: true
+  CACHE_PATH: $(Pipeline.Workspace)/.stack
+  CACHE_KEY: $(Agent.OS) | "packed" | "lts-13.26" | dependencies.lock
+
+resources:
+  repositories:
+  - repository: caching-templates
+    type: github
+    name: mbg/caching-templates
+    ref: refs/heads/master
+    endpoint: mbg
+
+steps:
+# checkout the waat repository as well as all submodules
+- checkout: self
+  submodules: true
+
+- script: |
+    sudo apt-get install libpcre3-dev
+  displayName: Install system dependencies
+
+- script: |
+    mkdir -p ~/.local/bin
+    curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  displayName: Install Stack
+
+- template: pack/pre-restore-steps.yml@caching-templates
+- task: CacheBeta@1
+  displayName: Dependency cache
+  inputs:
+    key: $(CACHE_KEY)
+    path: $(CACHE_PATH)
+    cacheHitVar: CACHE_RESTORED
+    restoreKeys: |
+      $(Agent.OS) | "packed" | "lts-13.26"
+# Unpack the cache
+- template: pack/post-restore-steps.yml@caching-templates
+
+# Install GHC
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    stack --no-terminal --install-ghc setup
+  displayName: Install GHC
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    stack --no-terminal --install-ghc build --only-dependencies --fast
+  displayName: Build Dependencies
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    # Build the package
+    stack build --fast
+  displayName: Build 
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    # Build the package
+    mkdir bin
+    stack install --fast --local-bin-path ./bin
+  displayName: Install 
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: './bin'
+    artifactName: drop
+
+- template: pack/pre-save-steps.yml@caching-templates
