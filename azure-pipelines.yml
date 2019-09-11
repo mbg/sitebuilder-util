@@ -11,6 +11,10 @@ pool:
 
 variables:
   HOME: $(Pipeline.Workspace)
+  CACHE_PACK: true
+  CACHE_PATH: $(Pipeline.Workspace)/.stack
+  CACHE_KEY: $(Agent.OS) | "packed" | "lts-13.26" | dependencies.lock
+
 resources:
   repositories:
   - repository: caching-templates
@@ -33,6 +37,18 @@ steps:
     curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   displayName: Install Stack
 
+- template: pack/pre-restore-steps.yml@caching-templates
+- task: CacheBeta@1
+  displayName: Dependency cache
+  inputs:
+    key: $(CACHE_KEY)
+    path: $(CACHE_PATH)
+    cacheHitVar: CACHE_RESTORED
+    restoreKeys: |
+      $(Agent.OS) | "packed" | "lts-13.26"
+# Unpack the cache
+- template: pack/post-restore-steps.yml@caching-templates
+
 # Install GHC
 - script: |
     export PATH=$HOME/.local/bin:$PATH
@@ -49,3 +65,17 @@ steps:
     # Build the package
     stack build --fast
   displayName: Build 
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    # Build the package
+    mkdir bin
+    stack install --fast --local-bin-path ./bin
+  displayName: Install 
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: './bin'
+    artifactName: drop
+
+- template: pack/pre-save-steps.yml@caching-templates
