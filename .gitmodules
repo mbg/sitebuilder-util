@@ -1,0 +1,3 @@
+[submodule "uow-apis"]
+	path = uow-apis
+	url = https://github.com/mbg/uow-apis
