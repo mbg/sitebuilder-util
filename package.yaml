@@ -1,0 +1,33 @@
+name:                sitebuilder-util
+version:             0.1.0.0
+github:              mbg/sitebuilder-util
+license:             MIT
+author:              Michael B. Gale
+maintainer:          m.gale@warwick.ac.uk
+copyright:           2019 Michael B. Gale
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+synopsis:            Utility program for managing Sitebuilder websites
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/mbg/sitebuilder-util#readme>
+
+dependencies:
+- base
+- text
+- optparse-applicative
+- uow-apis
+
+default-extensions:
+- OverloadedStrings
+- RecordWildCards
+
+executable:
+  source-dirs: app
+  main: Main.hs
