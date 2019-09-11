@@ -1,0 +1,1 @@
+stack ls dependencies > dependencies.lock
