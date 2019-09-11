@@ -9,11 +9,43 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  HOME: $(Pipeline.Workspace)
+resources:
+  repositories:
+  - repository: caching-templates
+    type: github
+    name: mbg/caching-templates
+    ref: refs/heads/master
+    endpoint: mbg
+
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+# checkout the waat repository as well as all submodules
+- checkout: self
+  submodules: true
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    sudo apt-get install libpcre3-dev
+  displayName: Install system dependencies
+
+- script: |
+    mkdir -p ~/.local/bin
+    curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  displayName: Install Stack
+
+# Install GHC
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    stack --no-terminal --install-ghc setup
+  displayName: Install GHC
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    stack --no-terminal --install-ghc build --only-dependencies --fast
+  displayName: Build Dependencies
+
+- script: |
+    export PATH=$HOME/.local/bin:$PATH
+    # Build the package
+    stack build --fast
+  displayName: Build 
