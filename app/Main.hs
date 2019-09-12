@@ -13,6 +13,7 @@ import Data.Text
 import Options.Applicative
 
 import System.Environment
+import System.Exit
 
 import Warwick.Config
 import Warwick.Common
@@ -62,7 +63,7 @@ main = do
             r <- withAPI Live config $ editPageFromFile cPage comment cFile
 
             case r of 
-                Left err -> print err 
-                Right _ -> pure ()
+                Left err -> exitWith (ExitFailure (-1)) 
+                Right _ -> exitSuccess
 
 --------------------------------------------------------------------------------
