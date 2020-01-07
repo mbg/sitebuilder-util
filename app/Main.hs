@@ -14,6 +14,7 @@ import Options.Applicative
 
 import System.Environment
 import System.Exit
+import System.FilePath
 
 import Warwick.Config
 import Warwick.Common
@@ -27,14 +28,25 @@ data Command
         cFile :: FilePath,
         cComment :: Maybe Text
     }
+    | UploadCommand {
+        cPage :: Text,
+        cFile :: FilePath,
+        cSlug :: Maybe Text
+    }
 
 editP :: Parser Command 
 editP = EditCommand <$> strOption (long "page" <> metavar "PAGE")
                     <*> strOption (long "file" <> metavar "FILE")
                     <*> optional (strOption (long "comment"))
 
+uploadP :: Parser Command 
+uploadP = UploadCommand <$> strOption (long "page" <> metavar "PAGE")
+                        <*> strOption (long "file" <> metavar "FILE")
+                        <*> optional (strOption (long "name"))
+
 commandP :: Parser Command 
-commandP = subparser (command "edit" (info editP (progDesc "Edit a file.")))
+commandP = subparser (command "edit" (info editP (progDesc "Edit a file.")) <> 
+                      command "upload" (info uploadP (progDesc "Upload a file.")))
 
 opts :: ParserInfo Command 
 opts = info (commandP <**> helper) idm
@@ -43,6 +55,11 @@ parseCmdLineArgs :: IO Command
 parseCmdLineArgs = execParser opts
 
 --------------------------------------------------------------------------------
+
+handleAPI :: IO (Either a b) -> IO b
+handleAPI m = m >>= \case 
+    Left err -> exitWith (ExitFailure (-1)) 
+    Right _ -> exitSuccess
 
 main :: IO ()
 main = do 
@@ -60,10 +77,12 @@ main = do
         EditCommand{..} -> do 
             let comment = fromMaybe "" cComment
 
-            r <- withAPI Live config $ editPageFromFile cPage comment cFile
+            handleAPI $ withAPI Live config $ 
+                editPageFromFile cPage comment cFile
+        UploadCommand{..} -> do 
+            let name = fromMaybe "" cSlug
 
-            case r of 
-                Left err -> exitWith (ExitFailure (-1)) 
-                Right _ -> exitSuccess
+            handleAPI $ withAPI Live config $ 
+                uploadFile cPage name cFile
 
 --------------------------------------------------------------------------------

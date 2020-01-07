@@ -22,11 +22,13 @@ dependencies:
 - base
 - text
 - optparse-applicative
+- filepath
 - uow-apis
 
 default-extensions:
 - OverloadedStrings
 - RecordWildCards
+- LambdaCase
 
 executable:
   source-dirs: app

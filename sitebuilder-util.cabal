@@ -1,0 +1,41 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: d6f007b014bf175084ae9a647d824dcc6aeb8192698ed6acff966a28c3dc8ab1
+
+name:           sitebuilder-util
+version:        0.1.0.0
+synopsis:       Utility program for managing Sitebuilder websites
+description:    Please see the README on GitHub at <https://github.com/mbg/sitebuilder-util#readme>
+homepage:       https://github.com/mbg/sitebuilder-util#readme
+bug-reports:    https://github.com/mbg/sitebuilder-util/issues
+author:         Michael B. Gale
+maintainer:     m.gale@warwick.ac.uk
+copyright:      2019 Michael B. Gale
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/mbg/sitebuilder-util
+
+executable sitebuilder-util
+  main-is: Main.hs
+  other-modules:
+      Paths_sitebuilder_util
+  hs-source-dirs:
+      app
+  default-extensions: OverloadedStrings RecordWildCards LambdaCase
+  build-depends:
+      base
+    , filepath
+    , optparse-applicative
+    , text
+    , uow-apis
+  default-language: Haskell2010
