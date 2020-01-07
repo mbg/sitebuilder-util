@@ -15,13 +15,13 @@ variables:
   CACHE_PATH: $(Pipeline.Workspace)/.stack
   CACHE_KEY: $(Agent.OS) | "packed" | "lts-13.26" | dependencies.lock
 
-resources:
-  repositories:
-  - repository: caching-templates
-    type: github
-    name: mbg/caching-templates
-    ref: refs/heads/master
-    endpoint: mbg
+# resources:
+#   repositories:
+#   - repository: caching-templates
+#     type: github
+#     name: mbg/caching-templates
+#     ref: refs/heads/master
+#     endpoint: mbg
 
 steps:
 # checkout the waat repository as well as all submodules
@@ -37,8 +37,8 @@ steps:
     curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   displayName: Install Stack
 
-- template: pack/pre-restore-steps.yml@caching-templates
-- task: CacheBeta@1
+# - template: pack/pre-restore-steps.yml@caching-templates
+- task: Cache@2
   displayName: Dependency cache
   inputs:
     key: $(CACHE_KEY)
@@ -46,8 +46,8 @@ steps:
     cacheHitVar: CACHE_RESTORED
     restoreKeys: |
       $(Agent.OS) | "packed" | "lts-13.26"
-# Unpack the cache
-- template: pack/post-restore-steps.yml@caching-templates
+# # Unpack the cache
+# - template: pack/post-restore-steps.yml@caching-templates
 
 # Install GHC
 - script: |
@@ -78,4 +78,4 @@ steps:
     pathtoPublish: './bin'
     artifactName: drop
 
-- template: pack/pre-save-steps.yml@caching-templates
+# - template: pack/pre-save-steps.yml@caching-templates
